@@ -1,7 +1,7 @@
 // @TODO: YOUR CODE HERE!
 // svg container
-var height = 400;
-var width = 400;
+width = parseInt(d3.select("#scatter").style("width"));
+   height = width - width / 3.9;
 
 // margins
 var margin = {
@@ -16,7 +16,7 @@ var chartHeight = height - margin.top - margin.bottom;
 var chartWidth = width - margin.left - margin.right;
 
 // create svg container
-var svg = d3.selectAll("scatter").append("svg")
+var svg = d3.selectAll("#scatter").append("svg")
     .attr("height", height)
     .attr("width", width);
 
@@ -24,10 +24,10 @@ var svg = d3.selectAll("scatter").append("svg")
 var chartGroup = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-d3.csv("assets/data/data.csv", function(error, state_data) {
-    if (error) throw error;
+d3.csv("assets/data/data.csv").then(function(state_data) {
+    //if (error) throw error;
 
-    console.log(state_data);
+    //console.log(state_data);
     state_data.forEach(function(data) {
         data.state = data.state;
         data.abbrev=data.abbrev;
@@ -40,11 +40,11 @@ d3.csv("assets/data/data.csv", function(error, state_data) {
     // Create scaling functions
     var xLinearScale1 = d3.scaleLinear()
         .domain(d3.extent(state_data, d => d.obesity))
-        .range([0, width]);
+        .range([0, chartWidth]);
 
     var yLinearScale1 = d3.scaleLinear()
         .domain([0, d3.max(state_data, d => d.poverty)])
-        .range([height, 0]);
+        .range([chartHeight, 0]);
 
     var bottomAxis = d3.axisBottom(xLinearScale1)
     var leftAxis = d3.axisLeft(yLinearScale1);
@@ -52,7 +52,7 @@ d3.csv("assets/data/data.csv", function(error, state_data) {
 
     // Add x-axis
     chartGroup.append("g")
-        .attr("transform", `translate(0, ${height})`)
+        .attr("transform", `translate(0, ${chartHeight})`)
         .call(bottomAxis);
 
     // Add y1-axis to the left side of the display
@@ -62,38 +62,22 @@ d3.csv("assets/data/data.csv", function(error, state_data) {
         .call(leftAxis);
     
     
-    svg.selectAll("text")
-        .data(state_data)
-        .enter()
-        .append("text")
-        .text(function(d) {
-            return d.abbrev;
-        })
-        .attr("x", function(d) {
-            return xLinearScale1(d.obesity);  // Returns scaled location of x
-        })
-        .attr("y", function(d) {
-            return yLinearScale1(d.poverty);  // Returns scaled circle y
-        })
-        .attr("font_family", "sans-serif")  // Font type
-        .attr("font-size", "11px")  // Font size
-        .attr("fill", "darkgreen");   // Font color
-
-
-        
     chartGroup.selectAll("circle")
         .data(state_data)
         .enter()
         .append("circle")
-        //.attr("cx", (d, i) => xScale(i))
-        //.attr("cy", d => yScale(d))
+        //.attr("cx", (d, i) => xLinearScale1(d.obesity))
+        //.attr("cy", d => yLinearScale1(d.poverty))
         .attr("r", "10")
-        .attr("fill", "red");
+        .attr("fill", "red")//;
     
+
     chartGroup.selectAll("circle")
         .transition()
         .duration(1000)
-        .attr("cx", (d, i) => xLinearScale1(i))
-        .attr("cy", d => yLinearScale1(d));
-
+        .attr("cx", (d, i) => xLinearScale1(d.obesity))
+        .attr("cy", d => yLinearScale1(d.poverty))
+        //.append("text",(d,i)=>d.abbrev).attr("dx",(d, i) => xLinearScale1(d.obesity))
+        //.attr("dy",(d, i) => yLinearScale1(d.poverty))
+    
     });
